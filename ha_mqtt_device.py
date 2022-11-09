@@ -51,7 +51,7 @@ class Sensor(Component):
         parent_device,
         unit_of_measurement,
         icon=None,
-        topic_parent_level="",
+        unique_id="",
         force_update = False
     ):
         super().__init__("sensor")
@@ -63,8 +63,8 @@ class Sensor(Component):
         self.object_id = self.name.replace(" ", "_").lower()
         self.unit_of_measurement = unit_of_measurement
         self.icon = icon
-        self.topic_parent_level = topic_parent_level
-        self.topic = f"{self.parent_device.name}/{self.component}/{self.topic_parent_level}/{self.object_id}"
+        self.topic = f"{self.parent_device.name}/{self.component}/{self.object_id}"
+        self.unique_id = self.object_id
         self._send_config()
 
     def _send_config(self):
@@ -74,14 +74,15 @@ class Sensor(Component):
             "state_topic": "~/state",
             "unit_of_measurement": self.unit_of_measurement,
             "device": self.parent_device,
-            "force_update": self.force_update
+            "force_update": self.force_update,
+            "unique_id": self.unique_id
         }
 
         if self.icon:
             _config["icon"] = self.icon
 
         self.client.publish(
-            f"{DISCOVERY_PREFIX}/{self.component}/{self.parent_device.name}/{self.object_id}/config",
+            f"{DISCOVERY_PREFIX}/{self.component}/{self.object_id}/config",
             json.dumps(_config),
             retain=True,
         ).wait_for_publish()
